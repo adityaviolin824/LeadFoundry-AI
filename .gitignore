@@ -1,0 +1,7 @@
+.env
+__pycache__/
+logs/
+runs/
+testing/
+dummy/
+outputs/
