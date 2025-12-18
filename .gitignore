@@ -1,14 +1,8 @@
 .env
+.venv
 __pycache__/
 logs/
 runs/
 testing/
 dummy/
 outputs/
-.venv
-main.py
-__init__.py
-utils/
-pipeline_execution/
-.dockerignore
-uv.lock
