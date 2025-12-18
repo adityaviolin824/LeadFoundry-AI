@@ -1,6 +1,5 @@
 FROM python:3.13-slim
 
-# System deps for Python and Node tools
 RUN apt-get update -qq && \
     apt-get install -y \
         curl \
@@ -21,14 +20,10 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-# 1) Install Python deps, including mcp-server-fetch
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir mcp-server-fetch
 
-# 2) Install Node based MCP servers globally:
-#    - @oevortex/ddg_search -> ddg-search-mcp
-#    - mcp-memory-libsql    -> mcp-memory-libsql
 RUN npm install -g @oevortex/ddg_search
 
 COPY . .

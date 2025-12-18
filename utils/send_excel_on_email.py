@@ -62,9 +62,6 @@ def send_lead_notification(
         excel_attached = False
         excel_error_note = ""
 
-        # =========================
-        # Attach Excel if available
-        # =========================
         if excel_path:
             try:
                 if not os.path.exists(excel_path):
@@ -93,9 +90,6 @@ def send_lead_notification(
                 )
                 print(f"⚠️ Excel attachment skipped: {e}")
 
-        # =========================
-        # Final email body
-        # =========================
         final_html = html_content
         if not excel_attached and excel_path:
             final_html += excel_error_note

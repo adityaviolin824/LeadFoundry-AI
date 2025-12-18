@@ -73,7 +73,7 @@ app.add_middleware(
 
 async def cleanup_stale_runs(
     base_dir: str = "runs",
-    min_age_seconds: int = 1 * 3600,  # 1 hour
+    min_age_seconds: int = 1 * 3600,  # 1 hour old runs are deleted
 ):
     """
     Delete run folders that:

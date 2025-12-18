@@ -169,7 +169,7 @@ def _progress(cfg: PipelineConfig, event: str, payload: Optional[dict] = None):
             pass
 
 # ---------------------------------------------------------------------
-# Async intake safety
+# Async intake
 # ---------------------------------------------------------------------
 
 _async_executor = ThreadPoolExecutor(max_workers=2)

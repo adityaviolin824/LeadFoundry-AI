@@ -8,3 +8,4 @@ pyproject.toml
 uv.lock
 .git
 .gitignore
+test/
