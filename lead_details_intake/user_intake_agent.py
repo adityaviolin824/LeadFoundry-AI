@@ -8,7 +8,7 @@ load_dotenv(override=True)
 # ============================================================
 # Configuration <<<NUMBER CAN SEVERELY AFFECT RUNTIME>>>
 # ============================================================
-QUERY_COUNT = 3
+QUERY_COUNT = 1
 # ============================================================
 
 
@@ -25,7 +25,7 @@ Input JSON fields you may use:
 Constraints (strict):
 - Output exactly one JSON object and nothing else.
 - Return exactly {QUERY_COUNT} queries.
-- Each query must be 2 to 5 words long.
+- Each query must be 2 to 7 words long.
 - Use plain words only: lowercase, no quotes, no punctuation, no boolean operators, no special symbols.
 - Avoid stopwords like "the", "and", "of".
 - Prefer terms that work in both general web search and maps (city or region names, entity type, short industry keywords).
@@ -35,9 +35,8 @@ Constraints (strict):
 Query construction priority (use top ones first):
 1. entity_subtype + location
 2. keyword + location
-3. entity_subtype + industry + location
-4. role + entity_subtype + location  (use at most once)
-5. keyword + entity_subtype + location
+3. entity_subtype + location
+4. keyword + entity_subtype + location
 
 Diversify results:
 - If you need multiple queries with similar fields, vary the wording using synonyms or reorder words (example: "technical university delhi" vs "delhi technical university").
@@ -68,8 +67,8 @@ Example input (for reference only):
 Example valid output:
 {{
   "queries": [
-    "technical university delhi",
-    "engineering workshop gurgaon"
+    "engineering university delhi",
+    "techical workshop mumbai"
   ]
 }}
 """

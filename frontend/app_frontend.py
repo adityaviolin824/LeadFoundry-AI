@@ -3,7 +3,7 @@ import requests
 import time
 from pathlib import Path
 from templates.spinner import render_spinning_status
-from templates.style import LF_STYLE
+from templates.style import apply_lf_styles
 import pandas as pd
 from io import BytesIO
 
@@ -14,7 +14,7 @@ REQUEST_TIMEOUT = 1200
 
 INTAKE_TIMEOUT = 120
 RESEARCH_TIMEOUT = 1800
-FINALIZE_TIMEOUT = 120
+FINALIZE_TIMEOUT = 600
 POLL_INTERVAL = 2.5
 
 
@@ -28,9 +28,9 @@ def get_phase_timeout(phase, status):
     return RESEARCH_TIMEOUT
 
 
-st.set_page_config(page_title="LeadFoundry AI", page_icon="🧲", layout="wide")
+st.set_page_config(page_title="LeadFoundry AI", layout="wide")
 
-st.markdown(f"<style>{LF_STYLE}</style>", unsafe_allow_html=True)
+apply_lf_styles(accent_hex="#FF9B50", enable_heatwave=True)
 
 
 def init():
@@ -157,11 +157,27 @@ def is_probably_valid_email(email: str) -> bool:
     return True
 
 
-st.sidebar.markdown("### 🧲 LeadFoundry AI")
-st.sidebar.caption("Agentic lead generation pipeline")
+st.sidebar.markdown(
+    """
+    <div class="lf-sidebar-brand">
+        <div class="lf-sidebar-brand-title">LeadFoundry AI</div>
+        <div class="lf-sidebar-brand-subtitle">
+            Industrial lead intelligence pipeline
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 st.sidebar.divider()
 
-PIPELINE = ["Profile Intake", "Lead Search", "Optimize", "Download"]
+PIPELINE = [
+    "Target Definition",
+    "Multi-Source Discovery",
+    "Signal Refinement",
+    "Export & Delivery",
+]
+
 view_map = {
     "create_profile": 0,
     "intake_processing": 1,
@@ -189,7 +205,7 @@ for idx, label in enumerate(PIPELINE):
 
 st.markdown('<div class="lf-hero-title">🧲 LeadFoundry AI</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="lf-hero-tagline">Find qualified leads using intelligent agent teams.</div>',
+    '<div class="lf-hero-tagline">High-signal lead discovery powered by autonomous agents.</div>',
     unsafe_allow_html=True,
 )
 st.markdown("<br>", unsafe_allow_html=True)
@@ -197,7 +213,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 if st.session_state.view == "create_profile":
 
-    st.markdown('<div class="lf-section-title">Create Lead Search Profile</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lf-section-title">Target Definition</div>', unsafe_allow_html=True)
 
     with st.form("form"):
         col1, col2 = st.columns(2)
@@ -208,7 +224,7 @@ if st.session_state.view == "create_profile":
                 placeholder="e.g. University outreach, SaaS partnerships",
             )
 
-            entity_type = st.selectbox(
+            entity_type = st.multiselect(
                 "Entity Type",
                 options=[
                     "Corporate / Enterprise",
@@ -223,6 +239,7 @@ if st.session_state.view == "create_profile":
                     "Manufacturing / Industrial",
                     "Others",
                 ],
+                default=["Corporate / Enterprise", "Startup"],
             )
 
             entity_subtype = st.text_input(
@@ -233,7 +250,7 @@ if st.session_state.view == "create_profile":
         with col2:
             locations = st.text_input(
                 "Locations",
-                "Odisha, West Bengal",
+                "Singapore, Hong Kong, Mumbai",
             )
 
             industries = st.text_input(
@@ -307,7 +324,7 @@ if st.session_state.view == "create_profile":
 
         with col2:
             required_fields = st.text_input(
-                "Required Fields",
+                "Preferred Fields",
                 "email, phone",
             )
 
@@ -316,17 +333,16 @@ if st.session_state.view == "create_profile":
             placeholder="Enter your email to receive leads automatically",
         )
 
-        lead_target = st.selectbox(
+        lead_target = st.multiselect(
             "What should we prioritize?",
             options=[
                 "Companies",
                 "People",
-                "Both",
             ],
-            index=2,
+            default=["Companies"]
         )
 
-        submit = st.form_submit_button("Launch Lead Intake", use_container_width=True)
+        submit = st.form_submit_button("Initialize Pipeline", use_container_width=True)
 
     if submit:
         if not locations.strip() or not industries.strip():
@@ -339,8 +355,8 @@ if st.session_state.view == "create_profile":
 
         payload = {
             "project": project.strip() or None,
-            "lead_target": lead_target.lower(),
-            "entity_type": entity_type,
+            "lead_target": [x.lower() for x in lead_target],
+            "entity_type": [x.lower() for x in entity_type],
             "targets": {
                 "entity_subtype": entity_subtype.strip(),
                 "locations": [x.strip() for x in locations.split(",") if x.strip()],
@@ -444,9 +460,9 @@ elif st.session_state.view == "research_processing":
             status = result.get("status")
             
             if status == "research_completed":
-                st.success("Research completed successfully")
+                st.success("Discovery phase completed")
                 
-                if st.button("De-duplicate, Enrich, Sort & Generate Excel", type="primary", use_container_width=True):
+                if st.button("Finalize & Generate Output", type="primary", use_container_width=True):
                     code, data = api_post(f"/runs/{run_id}/finalize_full")
                     
                     if code in (200, 202):
@@ -469,7 +485,7 @@ elif st.session_state.view == "finalize_processing":
         status = result.get("status")
         
         if status == "finalize_completed":
-            st.success("Finalization completed successfully")
+            st.success("Output successfully forged")
             time.sleep(0.5)
             st.session_state.view = "results"
             st.rerun()

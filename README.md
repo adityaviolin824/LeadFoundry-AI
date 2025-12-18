@@ -4,11 +4,15 @@ LeadFoundry AI automates lead research by searching LinkedIn, Facebook, company 
 
 ## Live Demo
 
-* **API Backend**: Deployed on Google Cloud Run
-* **Frontend UI**: Deployed on Streamlit Cloud
+* **API Backend**: https://leadfoundry-ai-vdkm-846645990850.asia-south1.run.app
+* **Frontend UI**: https://leadfoundry-ai-vdkm-v2.streamlit.app
 * **Architecture**: Decoupled deployment with a FastAPI backend handling orchestration and a Streamlit frontend for interactive submissions
 
-![Architecture Diagram](templates/architecture_diagram.png)
+<p align="center">
+  <img src="templates/architecture_diagram_updated.png" 
+       alt="Architecture Diagram"
+       style="width:800px; height:500px; max-width:100%;">
+</p>
 
 ## How It Works
 

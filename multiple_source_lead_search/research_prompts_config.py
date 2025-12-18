@@ -1,157 +1,157 @@
+# ============================================================
+# LINKEDIN SEARCH AGENT <ONLY PROMPT THAT WORKS, DO NOT CHANGE THIS>
+# ============================================================
+
+LINKEDIN_SEARCH_AGENT_FETCH_INSTRUCTIONS = """
+MAX_CALLS = 3
+Priority: discovering valid email and phone numbers from LinkedIn pages for lead search.
+
+TASK:
+
+SEARCH SEQUENCE (STRICT ORDER):
+1) tavily_search(query) EXACTLY 2-3 calls:
+   - Call 1: "<query> LinkedIn company"
+   - Call 2: "<query> site:linkedin.com/company"
+
+2) Remaining calls (if any) may ONLY be used for additional discovery via search tools.
+   - DO NOT fetch LinkedIn URLs directly.
+
+PROHIBITED:
+- Fetching LinkedIn pages directly
+- Using fetch MCP or DuckDuckGo in any form. DO NOT use fetch or DuckDuckGo.
+- More than 3 tavily_search calls
+- Retrying failed searches
+- Skipping required steps
+- Exceeding MAX_CALLS
+
+EXTRACTION:
+- Extract ONLY explicitly visible information from search results or snippets:
+  company_name, linkedin_url, headquarters_location, description, industry, source_urls
+- email and phone_number MUST be returned as "unknown" unless explicitly visible in the snippet.
+- Flags: has_email, has_phone
+
+RULES:
+- NEVER infer, guess, or fabricate.
+- Missing fields MUST be returned as "unknown".
+
+TERMINATION:
+- If none are found, return:
+  {"results": [], "message": "No LinkedIn pages found"}
+
+OUTPUT:
+- JSON only
+{"results":[{...}]}
 """
-Keeps all LLM instruction strings in one place for easier maintenance,
-versioning, and experimentation.
+
+
+# ============================================================
+# FACEBOOK SEARCH AGENT
+# ============================================================
+
+FACEBOOK_SEARCH_AGENT_FETCH_INSTRUCTIONS = """
+MAX_CALLS = 3
+Priority: emails and phone numbers are highest priority.
+
+TASK:
+- MAX_CALLS is a hard limit. Every tool call counts.
+
+SEARCH SEQUENCE (HARD RULES):
+1) tavily_search(query, max_results=25) EXACTLY 2 calls:
+   - Call 1: "<query> Facebook page"
+   - Call 2: "<query> Facebook business"
+2) Remaining calls (if any) should not be used if satisfactory results are obtained.
+
+DO NOT:
+- Use tavily_search more than 3 times total
+- Use fetch MCP or DuckDuckGo. DO NOT use fetch or DuckDuckGo.
+- Retry failed searches
+- Exceed MAX_CALLS
+
+EXTRACTION:
+- Extract ONLY explicitly visible fields:
+  business_name, facebook_url, email, phone_number, physical_address, description, source_urls
+- Flags: has_email, has_phone
+- Missing fields MUST be returned as "unknown"
+- NEVER infer or guess
+
+TERMINATION:
+- If none are found, return:
+  {"results": [], "message": "No Facebook pages found"}
+
+OUTPUT: JSON only
+{"results":[{...}]}
 """
 
-# -------------------------
-# LINKEDIN
-# -------------------------
-LINKEDIN_SEARCH_AGENT_FETCH_INSTRUCTIONS = (
-    "Priority: extract explicit email and phone numbers whenever present. Email and phone are the highest priority fields.\n\n"
 
-    "GLOBAL LIMIT:\n"
-    "- MAXIMUM 5 total tool calls across all tools. Never exceed 5.\n\n"
+# ============================================================
+# OFFICIAL WEBSITE SEARCH AGENT
+# ============================================================
 
-    "SEARCH STRATEGY (STRICT ORDER):\n"
-    "1. tavily_search(query) up to 2 times.\n"
-    "   Allowed query forms only:\n"
-    "   - '<query> LinkedIn'\n"
-    "   - '<query> official LinkedIn'\n"
-    "   Reserve one call for a contact-focused query using tokens: contact, phone, contact us.\n\n"
+WEBSITE_SEARCH_AGENT_FETCH_INSTRUCTIONS = """
+MAX_CALLS = 3
+Priority: emails and phone numbers are highest priority.
 
-    "2. MCP web-search (DuckDuckGo) up to 2 times if results are insufficient.\n"
-    "   Allowed query forms only:\n"
-    "   - '<query> LinkedIn company'\n"
-    "   - '<query> site:linkedin.com/company'\n\n"
+TASK:
+- MAX_CALLS is a hard limit. Every tool call counts.
 
-    "3. ONE final MCP web-search if still insufficient.\n"
-    "   Example: '<query> LinkedIn page'.\n\n"
+SEARCH SEQUENCE (HARD RULES):
+1) tavily_search(query) EXACTLY 2 calls:
+   - Call 1: "<query> official website"
+   - Call 2: "<query> company website"
+2) Remaining calls (if any) should not be used if good results are already obtained.
 
-    "STOP CONDITIONS:\n"
-    "- Stop immediately once multiple relevant LinkedIn pages with contact info are found.\n"
-    "- Do NOT exhaust tool calls if useful results already exist.\n\n"
+DO NOT:
+- Use tavily_search more than 3 times total
+- Use fetch MCP or DuckDuckGo. DO NOT use fetch or DuckDuckGo.
+- Retry failed searches
+- Exceed MAX_CALLS
 
-    "RESULT SELECTION:\n"
-    "- Prefer pages that explicitly expose email or phone numbers. Deprioritize individual profiles, job posts, and news.\n\n"
+EXTRACTION:
+- Extract ONLY explicitly visible fields:
+  company_name, website_url, email, phone_number, physical_address, description,
+  services_offered, year_established, source_urls
+- Flags: has_email, has_phone, has_website
+- Missing fields MUST be returned as "unknown"
+- NEVER infer or guess
 
-    "EXTRACTION RULES:\n"
-    "- Extract ONLY explicitly visible fields:\n"
-    "  company_name, linkedin_url, headquarters_location, email, phone_number, description, industry, source_urls.\n"
-    "- Include normalized flags: has_phone, has_website.\n"
-    "- NEVER guess, infer, or enrich contact information.\n"
-    "- If a field is not visible, return 'unknown'.\n\n"
+TERMINATION:
+- If none are found, return:
+  {"results": [], "message": "No official website found"}
 
-    "OUTPUT (JSON ONLY):\n"
-    "{'results': [...]} OR {'results': [], 'message': 'No LinkedIn pages found'}."
-)
+OUTPUT: JSON only
+{"results":[{...}]}
+"""
 
-# -------------------------
-# FACEBOOK 
-# -------------------------
-FACEBOOK_SEARCH_AGENT_FETCH_INSTRUCTIONS = (
-    "Priority: extract explicit email and phone numbers whenever present. Email and phone are the highest priority fields.\n\n"
 
-    "GLOBAL LIMIT:\n"
-    "- MAXIMUM 5 total tool calls across all tools. Never exceed 5.\n\n"
+# ============================================================
+# GOOGLE MAPS (SERPAPI) SEARCH AGENT
+# ============================================================
 
-    "SEARCH STRATEGY (STRICT ORDER):\n"
-    "1. tavily_search(query, max_results=20) up to 2 times.\n"
-    "   Allowed query forms only:\n"
-    "   - '<query> Facebook page'\n"
-    "   - '<query> official Facebook'\n"
-    "   Reserve one call for a contact-focused query using tokens: contact, phone, contact us.\n\n"
+GMAP_SEARCH_AGENT_FETCH_INSTRUCTIONS = """
+MAX_CALLS = 3
+Priority: emails and phone numbers are highest priority.
 
-    "2. MCP web-search (DuckDuckGo) up to 2 times if results are insufficient.\n"
-    "   Allowed query forms only:\n"
-    "   - '<query> Facebook business'\n"
-    "   - '<query> site:facebook.com'\n\n"
+TASK:
+- MAX_CALLS is a hard limit.
+- Call serpapi_lead_search(business_type, location) UP TO MAX_CALLS times.
+- Vary business_type slightly between calls.
+- One call MUST include tokens: "contact phone email".
+- Do NOT use fetch MCP or DuckDuckGo. DO NOT use fetch or DuckDuckGo.
+- Do NOT artificially limit or post-filter tool results.
 
-    "3. ONE final MCP web-search if still insufficient.\n"
-    "   Example: '<query> Facebook page business'.\n\n"
+EXTRACTION:
+- Return raw-normalized fields:
+  business_name, address, phone_number, website, rating, reviews_count,
+  business_type, coordinates, has_phone, has_website, source_urls
+- Missing fields MUST be returned as "unknown"
+- NEVER infer or guess
 
-    "STOP CONDITIONS:\n"
-    "- Stop immediately once multiple valid Facebook pages with contact info are found.\n"
-    "- Do NOT exhaust tool calls if useful results already exist.\n\n"
+ERROR HANDLING:
+- If serpapi_lead_search fails, immediately return:
+  {"results": [], "error": "<error message>"}
+- If partial results are returned, include them and continue remaining calls
+  until MAX_CALLS is reached.
 
-    "RESULT SELECTION & URL FILTERING:\n"
-    "- Prefer Facebook pages that explicitly expose email or phone numbers.\n"
-    "- Accept URLs like: facebook.com/<name>, /about, /services.\n"
-
-    "EXTRACTION RULES:\n"
-    "- Extract ONLY explicitly visible fields:\n"
-    "  business_name, facebook_url, email, phone_number, physical_address, description, source_urls.\n"
-    "- Include normalized flags: has_phone, has_website.\n"
-    "- NEVER guess or infer missing data.\n"
-    "- If a field is not visible, return 'unknown'.\n\n"
-
-    "OUTPUT (JSON ONLY):\n"
-    "{'results': [...]} OR {'results': [], 'message': 'No Facebook pages found'}."
-)
-
-# -------------------------
-# WEBSITE
-# -------------------------
-WEBSITE_SEARCH_AGENT_FETCH_INSTRUCTIONS = (
-    "Priority: extract explicit email and phone numbers whenever present. Email and phone are the highest priority fields.\n\n"
-
-    "GLOBAL LIMIT:\n"
-    "- MAXIMUM 5 total tool calls across all tools. Never exceed 5.\n\n"
-
-    "SEARCH STRATEGY (STRICT ORDER):\n"
-    "1. tavily_search(query) up to 2 times.\n"
-    "   Allowed query forms only:\n"
-    "   - '<query> official website'\n"
-    "   - '<query> company website'\n"
-    "   Reserve one call for a contact-focused query using tokens: contact, phone, contact us.\n\n"
-
-    "2. MCP web-search (DuckDuckGo) up to 2 times if results are insufficient.\n"
-    "   Allowed query forms only:\n"
-    "   - '<query> contact'\n"
-    "   - '<query> site:*.com'\n\n"
-
-    "3. ONE final MCP web-search if still insufficient.\n"
-    "   Example: '<query> contact information'.\n\n"
-
-    "STOP CONDITIONS:\n"
-    "- Stop immediately once multiple official websites with contact info are found.\n"
-    "- Do NOT exhaust tool calls if useful results already exist.\n\n"
-
-    "RESULT SELECTION:\n"
-    "- Prefer official websites that explicitly display email or phone numbers. Deprioritize directories and aggregators.\n\n"
-
-    "EXTRACTION RULES:\n"
-    "- Extract ONLY explicitly visible fields:\n"
-    "  company_name, website_url, email, phone_number, physical_address, description, services_offered, year_established, source_urls.\n"
-    "- Include normalized flags: has_phone, has_website.\n"
-    "- NEVER guess, infer, or enrich missing information.\n"
-    "- If a field is not visible, return 'unknown'.\n\n"
-
-    "OUTPUT (JSON ONLY):\n"
-    "{'results': [...]} OR {'results': [], 'message': 'No official website found'}."
-)
-
-# -------------------------
-# GMAPS
-# -------------------------
-GMAP_SEARCH_AGENT_FETCH_INSTRUCTIONS = (
-    "Priority: extract explicit email and phone numbers whenever present. Email and phone are the highest priority fields.\n\n"
-
-    "GLOBAL LIMIT:\n"
-    "- MAXIMUM 4 tool calls. Never exceed 4.\n\n"
-
-    "USAGE RULES:\n"
-    "- Call serpapi_lead_search(business_type, location) up to 4 times.\n"
-    "- Vary business_type slightly across calls to improve recall.\n"
-    "- Reserve one call for a contact-focused query using tokens: contact, phone, contact us.\n"
-    "- Do NOT limit results; return every business from tool responses.\n\n"
-
-    "OUTPUT FIELDS (return raw API fields and normalized flags):\n"
-    "business_name, address, phone_number, website, rating, reviews_count, business_type, coordinates, has_phone, has_website, source_urls.\n"
-    "If a field is missing, return 'unknown'.\n\n"
-
-    "ERROR HANDLING:\n"
-    "- If serpapi_lead_search fails, return {'results': [], 'error': '<error message>'}.\n\n"
-
-    "OUTPUT (JSON ONLY):\n"
-    "{'results': [...]}."
-)
+OUTPUT: JSON only
+{"results":[{...}]}
+"""

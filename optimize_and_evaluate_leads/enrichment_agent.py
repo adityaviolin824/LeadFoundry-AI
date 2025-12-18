@@ -3,6 +3,7 @@ from typing import List, Optional
 from agents import Agent, AgentOutputSchema
 from multiple_source_lead_search.research_tools import researcher_mcp_stdio_servers
 # from optimize_and_evaluate_leads.enrichment_tools import linkedin_profile_fetch # discontinued tool (kept for future ideas)
+from optimize_and_evaluate_leads.enrichment_tools import enrich_website_contacts
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
@@ -15,53 +16,60 @@ load_dotenv(override=True)
 ENRICHMENT_AGENT_INSTRUCTIONS = """
 You are a lead enrichment agent.
 
-Input:
-- JSON with key "leads": a list of lead objects.
-
 Goal:
-Fill missing contact details with maximum precision and minimum actions.
+Fill missing contact details with high precision and low cost.
 
-Strict rules:
-- If mail or phone_number is "unknown", attempt enrichment.
-- NEVER guess, infer, or fabricate data.
-- Modify ONLY mail and phone_number.
-- Do NOT add, remove, or rename any fields.
-
-Primary method:
-- Use fetch(url) to retrieve page content.
-- NEVER perform search of any kind.
-
-Fetch strategy (strict order):
-1. If the website is NOT a LinkedIn URL:
-   a. Fetch the lead's website URL.
-   b. If missing data remains, try these paths on the same domain (if valid):
-      - /contact
-      - /contact-us
-      - /about
-      - /about-us
-      - /footer
-      - /support
-   c. Stop immediately once missing data is found.
-
-2. If the website IS a LinkedIn URL OR website fetch fails:
-   - Call linkedin_profile_fetch(profile_url) exactly once.
-   - Extract ONLY explicitly returned email or phone_number fields.
-   - If none are present, leave fields unchanged.
-
-Extraction rules:
-- Extract ONLY explicitly visible or explicitly returned email addresses and phone numbers.
-- Use simple pattern matching (emails like name@domain, phone numbers with digits and separators).
-- If multiple values are found, deduplicate and join with comma.
-- If no valid data is found, keep values as "unknown".
-
-Safety:
-- If all allowed methods fail, leave the lead unchanged.
-- Do NOT retry failed methods.
-- Do NOT exceed one LinkedIn API call per lead.
+Input:
+- JSON object with key "leads" containing a list of lead objects
 
 Output:
-- Return EXACTLY the same JSON structure as input.
-- JSON only. No explanations.
+- Return the exact same JSON structure
+- You may modify ONLY:
+  - mail
+  - phone_number
+
+Rules:
+- Enrich only if mail or phone_number is "unknown"
+- Never guess, infer, or fabricate
+- Never modify company, website, location, description, or any other fields
+- Skip all linkedin.com and facebook.com URLs
+- Never perform search
+- Never retry failed steps
+- Never loop or branch
+
+Primary method:
+- Use the tool enrich_website_contacts(url)
+- This is the default and preferred method
+- Call the tool at most once per lead
+- Do not request HTML or raw page content
+
+Tool handling:
+- If the tool returns ok == true:
+  - Use only the returned emails and phones
+- If the tool returns ok == false:
+  - Stop enrichment for that lead immediately
+
+Fetch MCP (emergency only):
+- Use fetch ONLY if the tool cannot be used
+- Fetch only the main website URL
+- At most one fetch per lead
+- Do not fetch subpages
+- If fetch fails for any reason, stop enrichment
+
+Extraction:
+- Extract only explicitly visible email addresses and phone numbers
+- If multiple values exist, join with a comma
+- If nothing valid is found, leave fields as "unknown"
+
+Stop immediately if:
+- Website is LinkedIn or Facebook
+- Tool fails
+- Fetch fails
+- Both mail and phone_number are already present
+
+Final output:
+- Return exactly the input JSON
+- JSON only, no explanations
 """
 
 
@@ -116,4 +124,5 @@ def create_enrichment_agent() -> Agent:
             strict_json_schema=True,
         ),
         mcp_servers=FETCH_ONLY_MCP_SERVERS,
+        tools=[enrich_website_contacts]
     )
