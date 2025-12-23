@@ -391,7 +391,7 @@ def run_sorting(cfg: PipelineConfig, metrics: PipelineMetrics):
 
     logger.info(
         "########## SORTING COMPLETED ########## | total_leads=%d",
-        len(sorted_leads)  # Just log the count, don't recalculate contact info
+        len(sorted_leads) 
     )
 
     _progress(cfg, "stage_complete", {"stage": "sorting"})

@@ -1,12 +1,14 @@
 # LeadFoundry AI
 
+**Designed for fast, cost-efficient B2B contact discovery with auditable enrichment.**
+
 LeadFoundry AI automates lead research by searching LinkedIn, Facebook, company websites, and Google Maps to find business contact information that matches user-defined criteria. It runs multiple searches in parallel, structures results into a clean Excel deliverable, and optionally emails the output when the run completes.
 
 ## Live Demo
 
 * **API Backend**: WILL BE UP AND RUNNING SOON
 * **Frontend UI**: 
-* **Architecture**: Decoupled deployment with a FastAPI backend handling orchestration and a Streamlit frontend for interactive submissions
+* **Architecture**: Decoupled deployment with a FastAPI backend handling orchestration and a Streamlit frontend for live demo
 
 <p align="center">
   <img src="templates/architecture_diagram_updated.png" 
@@ -20,7 +22,7 @@ LeadFoundry AI automates lead research by searching LinkedIn, Facebook, company 
 
 Users provide search criteria such as industry, location, personas, and keywords. An intake agent converts these inputs into 3–5 optimized search queries designed to maximize coverage while avoiding duplicate result sets. Each run includes at least one contact-focused query to surface pages containing email or phone information.
 
-### Multi‑Agent Research
+### Multi-Agent Research
 
 Each query is distributed across four specialized agents running in parallel:
 
@@ -41,13 +43,15 @@ Deduplication is handled deterministically in Python using company name and webs
 
 ### Enrichment
 
-After initial consolidation, an enrichment step revisits leads with missing contact data. This stage fetches publicly accessible website pages such as contact pages, about pages, and footers to recover email addresses or phone numbers missed during the primary search. Enrichment is performed post‑research to avoid slowing down the core pipeline.
+After initial consolidation, an enrichment step revisits leads with missing contact data. This stage fetches publicly accessible website pages such as contact pages, about pages, and footers to recover email addresses or phone numbers missed during the primary search. Enrichment is performed post-research to avoid slowing down the core pipeline.
+
+Enrichment is best-effort and non-exhaustive. Some websites may block automated access, hide contact details behind client-side rendering, or deliberately obscure public contact information.
 
 ## Usage Modes
 
-### With Email (Fire‑and‑Forget)
+### With Email (Fire-and-Forget)
 
-Designed for asynchronous use. Users submit a request, provide an email address, and close the browser. The pipeline runs in the background and sends the Excel output upon completion, even for long‑running executions.
+Designed for asynchronous use. Users submit a request, provide an email address, and close the browser. The pipeline runs in the background and sends the Excel output upon completion, even for long-running executions.
 
 ### Without Email (Interactive)
 
@@ -58,10 +62,10 @@ Users can monitor progress in real time through the UI, observe agent execution,
 Execution time and API cost depend on agent count, query breadth, and enrichment depth. The system minimizes LLM usage by relying on deterministic Python logic wherever possible:
 
 * Deduplication is algorithmic
-* Sorting and ranking are rule‑based
+* Sorting and ranking are rule-based
 * Enrichment is triggered only for missing fields
 
-This approach keeps runs cost‑efficient while preserving output quality.
+This approach keeps runs cost-efficient while preserving output quality.
 
 ## Output Format
 
@@ -94,7 +98,7 @@ Results are delivered as `final_leads_list.xlsx`, containing deduplicated, enric
 
 ## Deployment
 
-The backend API is deployed on Google Cloud Run with request‑driven autoscaling. The frontend UI is deployed separately on Streamlit Cloud. Both services are fully containerized and stateless, with each pipeline run assigned its own isolated directory for progress tracking and outputs.
+The backend API is deployed on Google Cloud Run with request-driven autoscaling. The frontend UI is deployed separately on Streamlit Cloud. Both services are fully containerized and stateless, with each pipeline run assigned its own isolated directory for progress tracking and outputs.
 
 ## Legal and Data Use
 
