@@ -67,6 +67,54 @@ Execution time and API cost depend on agent count, query breadth, and enrichment
 
 This approach keeps runs cost-efficient while preserving output quality.
 
+## Design Considerations and Model Selection Rationale
+
+### Model Selection Strategy
+
+Model choices were made based on iterative experimentation focused on lead quality, cost efficiency, and system-level output rather than single-run performance.
+
+* **Research Agents**  
+  Initial experiments showed that GPT-4.1-mini often produced higher-quality results in isolated runs. However, GPT-5-nano was selected for research agents due to significantly better lead value per dollar. While individual runs may be slightly weaker, the lower cost allows the system to issue more queries per run, resulting in broader coverage and a more comprehensive final lead list. In aggregate, this approach consistently outperformed fewer high-cost runs with stronger models.
+
+* **Structuring Agent**  
+  Lead structuring involves cross-domain reasoning, schema enforcement, and normalization across heterogeneous sources. GPT-4.1-mini was selected for this stage due to its higher consistency and reliability compared to GPT-4o-mini. This decision was informed by debugging and inspection using OpenAI trace analysis, where GPT-4.1-mini showed fewer malformed outputs and more stable schema adherence.
+
+* **Query Generation**  
+  Query generation is relatively low-cost and low-risk. GPT-4.1 was chosen as it demonstrated consistency comparable to GPT-4o while being significantly cheaper, and more stable than GPT-4o-mini in edge cases.
+
+* **Enrichment**  
+  Enrichment requires longer reasoning chains and multiple follow-up steps. GPT-4o was found to be prohibitively expensive for this purpose, while GPT-4o-mini showed higher variance and occasional hallucinated fields under extended runs. After increasing `max_turns` to 100 and testing multiple configurations, GPT-4.1-mini provided the best balance of cost, stability, and recovery of missing contact fields.
+
+---
+
+### Agent Effectiveness Observations
+
+Based on empirical results across multiple runs, agent effectiveness was observed in the following order:
+
+1. **Website Agent** (highest yield and contact accuracy)  
+2. **Facebook Agent**  
+3. **Google Maps Agent**  
+4. **LinkedIn Agent**
+
+This ordering reflects practical availability of public contact information rather than assumed platform importance.
+
+---
+
+### Extensibility and Enrichment Options
+
+The system is designed to be modular. Agents can be added or removed based on target domain, geography, or data availability without impacting the core pipeline. For higher-quality enrichment, paid third-party APIs can be integrated selectively to improve coverage or precision where free sources are insufficient.
+
+A conservative custom BeautifulSoup-based website scraper is also implemented as a fallback. It follows a strict skip-on-block policy to avoid timeouts, reduce failure cascades, and minimize legal or policy risks associated with aggressive scraping.
+
+---
+
+### Quantity vs Quality Tradeoffs
+
+Lead discovery inherently involves a tradeoff between quantity and quality. The final default configuration reflects a balance informed by practical constraints and discussions with field marketing and sales managers. In many real-world outreach workflows, broader but cleanly structured lead lists are preferred over smaller, highly curated sets, provided contact validity and schema consistency are maintained.
+
+As a result, the system prioritizes scalable coverage with deterministic post-processing, while allowing higher-cost, higher-precision enrichment paths to be enabled when required.
+
+
 ## Output Format
 
 All leads conform to a fixed schema:
