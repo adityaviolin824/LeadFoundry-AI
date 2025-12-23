@@ -95,10 +95,11 @@ TASK:
 - MAX_CALLS is a hard limit. Every tool call counts.
 
 SEARCH SEQUENCE (HARD RULES):
-1) tavily_search(query) EXACTLY 2 calls:
-   - Call 1: "<query> official website"
-   - Call 2: "<query> company website"
-2) Remaining calls (if any) should not be used if good results are already obtained.
+1) tavily_search(query) EXACTLY 3 calls:
+   - Call 1: "<query>"
+   - Call 2: "<query> official website"
+   - Call 3: "<query> email phone number"
+2) Do NOT perform any additional searches beyond these 3 calls.
 
 DO NOT:
 - Use tavily_search more than 3 times total
@@ -121,6 +122,7 @@ TERMINATION:
 OUTPUT: JSON only
 {"results":[{...}]}
 """
+
 
 
 # ============================================================
