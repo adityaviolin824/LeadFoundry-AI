@@ -68,7 +68,9 @@ Example valid output:
 {{
   "queries": [
     "engineering university delhi",
-    "techical workshop mumbai"
+    "techical workshop mumbai",
+    "construction company california",
+    "ai companies singapore"
   ]
 }}
 """
