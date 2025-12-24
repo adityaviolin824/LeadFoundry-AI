@@ -44,8 +44,18 @@ def render_spinning_status(html_placeholder, progress_placeholder, step, progres
 
     html = f"""
     <style>
-    @keyframes spin {{
+    @keyframes rotate-cw {{
         to {{ transform: rotate(360deg); }}
+    }}
+
+    @keyframes rotate-ccw {{
+        to {{ transform: rotate(-360deg); }}
+    }}
+
+    @keyframes heat-pulse {{
+        0% {{ box-shadow: 0 0 12px rgba(255,138,61,0.25); }}
+        50% {{ box-shadow: 0 0 22px rgba(255,138,61,0.45); }}
+        100% {{ box-shadow: 0 0 12px rgba(255,138,61,0.25); }}
     }}
 
     .lf-spinner {{
@@ -53,55 +63,91 @@ def render_spinning_status(html_placeholder, progress_placeholder, step, progres
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 2rem;
-        margin: 1.5rem 0;
-        border-radius: 14px;
+        padding: 2.2rem;
+        margin: 1.6rem 0;
+        border-radius: 16px;
         background: linear-gradient(
             135deg,
-            rgba(18,20,23,0.95),
-            rgba(26,30,34,0.9)
+            rgba(18,20,23,0.96),
+            rgba(28,32,36,0.92)
         );
-        border: 1px solid rgba(255,138,61,0.25);
+        border: 1px solid rgba(255,138,61,0.28);
+        animation: heat-pulse 2.8s ease-in-out infinite;
     }}
 
-    .lf-spinner-wheel {{
-        width: 56px;
+    .lf-gear-wrap {{
+        position: relative;
+        width: 78px;
         height: 56px;
+        margin-bottom: 1.4rem;
+    }}
+
+    .lf-gear {{
+        position: absolute;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
-        border: 4px solid rgba(255,138,61,0.25);
-        border-top-color: #FF8A3D;
-        animation: spin 1s linear infinite;
-        margin-bottom: 1.25rem;
+        border: 4px solid rgba(255,138,61,0.35);
+        background:
+            radial-gradient(circle at center, rgba(255,138,61,0.15), transparent 60%);
+    }}
+
+    .lf-gear::before {{
+        content: "";
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 2px dashed rgba(255,179,65,0.45);
+    }}
+
+    .lf-gear-a {{
+        left: 0;
+        top: 10px;
+        animation: rotate-cw 1.4s linear infinite;
+    }}
+
+    .lf-gear-b {{
+        right: 0;
+        top: 10px;
+        animation: rotate-ccw 1.4s linear infinite;
     }}
 
     .lf-spinner-title {{
-        font-size: 1.3rem;
-        font-weight: 700;
-        margin-bottom: 0.4rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin-bottom: 0.45rem;
         background: linear-gradient(135deg, #FFB341, #FF8A3D);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
         text-align: center;
+        letter-spacing: 0.02em;
     }}
 
     .lf-spinner-subtitle {{
         font-size: 0.95rem;
-        color: rgba(244,245,246,0.7);
+        color: rgba(244,245,246,0.72);
         text-align: center;
         max-width: 520px;
         line-height: 1.5;
     }}
 
     @media (prefers-reduced-motion: reduce) {{
-        .lf-spinner-wheel {{
+        .lf-gear-a,
+        .lf-gear-b {{
+            animation: none;
+        }}
+        .lf-spinner {{
             animation: none;
         }}
     }}
     </style>
 
     <div class="lf-spinner">
-        <div class="lf-spinner-wheel"></div>
+        <div class="lf-gear-wrap">
+            <div class="lf-gear lf-gear-a"></div>
+            <div class="lf-gear lf-gear-b"></div>
+        </div>
         <div class="lf-spinner-title">{title}</div>
         <div class="lf-spinner-subtitle">{subtitle}</div>
     </div>
