@@ -131,13 +131,25 @@ class LeadList(BaseModel):
 # ---------------------------------------------------------------------
 # Research tool defaults
 # ---------------------------------------------------------------------
-try:
-    DEFAULT_MCP_SERVERS = researcher_mcp_stdio_servers(
-        client_session_timeout_seconds=90
-    )
-except Exception:
-    logger.exception("Failed to initialize MCP servers")
-    DEFAULT_MCP_SERVERS = []
+def _safe_init_mcp_servers():
+    try:
+        servers = researcher_mcp_stdio_servers(
+            client_session_timeout_seconds=75
+        )
+        if servers:
+            logger.info("Initialized %d MCP server(s)", len(servers))
+        else:
+            logger.warning("MCP initialized with zero servers. Running without MCP.")
+        return servers
+    except Exception as e:
+        logger.exception(
+            "MCP initialization failed. Continuing without MCP. Error=%s",
+            e,
+        )
+        return []
+
+DEFAULT_MCP_SERVERS = _safe_init_mcp_servers()
+
 
 LINKEDIN_TOOLS = [tavily_search]
 FACEBOOK_TOOLS = [tavily_search]
